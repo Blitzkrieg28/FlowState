@@ -1,16 +1,24 @@
 import { createClient } from 'redis';
+import 'dotenv/config';
 
-const redisClient = createClient({
+const mainClient= createClient({
     url: process.env.REDIS_URL
 });
+mainClient.on('error' ,(err)=> console.log('Main client Redis Error!', err));
 
-redisClient.on('error', (err) => console.log('Redis Client Error', err));
+const subscriberClient= mainClient.duplicate();
+subscriberClient.on('error', (err)=> console.log('Subscriber client Redis Error!', err));
 
-try {
-    await redisClient.connect();
-    console.log('Successfully connected to Redis!');
-} catch (err) {
-    console.error('Could not connect to Redis:', err);
+try{
+   await mainClient.connect();
+   console.log('Redis main client connection successfull!!');
+   await subscriberClient.connect();
+   console.log('Redis subscriber connection successfull!1');
+} catch(err){
+     console.error('could not connect to redis!', err);
 }
 
-export const redis = redisClient;
+
+export const redis= mainClient;
+export const redisPublisher= mainClient;
+export const redisSubscriber= subscriberClient;
